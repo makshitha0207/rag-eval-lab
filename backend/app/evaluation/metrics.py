@@ -1,6 +1,10 @@
+import re
+
 import numpy as np
 
-from app.retrieval.retrievers import tokenize
+
+def tokenize(text: str) -> list[str]:
+    return re.findall(r"\w+", text.lower())
 
 
 def is_relevant(chunk_text: str, evidence: str, thresh: float = 0.6) -> bool:
