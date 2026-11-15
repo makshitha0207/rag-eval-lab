@@ -4,7 +4,7 @@
 
 **Which chunking strategy and retriever is best for your documents? Measure it instead of guessing.**
 
-A small framework that compares 2 chunkers × 4 retrievers × 3 values of k on a RAG corpus and reports Hit@k, MRR, Precision@k and latency.
+A small framework that compares 2 chunkers x 4 retrievers x 3 values of k on a RAG corpus and reports Hit@k, MRR, Precision@k and latency.
 
 ![accuracy vs latency](docs/accuracy_vs_latency.png)
 
@@ -12,30 +12,31 @@ A small framework that compares 2 chunkers × 4 retrievers × 3 values of k on a
 
 | Chunker | Retriever | Hit@5 | MRR | p50 latency |
 |---|---|---|---|---|
-| recursive | dense | 0.700 | 0.575 | 30 ms |
-| recursive | hybrid | 0.660 | 0.498 | 34 ms |
-| recursive | bm25 | 0.560 | 0.468 | 3 ms |
-| recursive | hybrid + rerank | 0.520 | 0.447 | 2226 ms |
-| fixed | dense | 0.640 | 0.414 | 31 ms |
-| fixed | bm25 | 0.540 | 0.470 | 3 ms |
-| fixed | hybrid | 0.580 | 0.461 | 36 ms |
-| fixed | hybrid + rerank | 0.560 | 0.436 | 2329 ms |
+| recursive | bm25 | 0.880 | 0.764 | 2.4 ms |
+| recursive | hybrid + rerank | 0.920 | 0.793 | 2198 ms |
+| recursive | hybrid | 0.860 | 0.636 | 32 ms |
+| recursive | dense | 0.640 | 0.484 | 29 ms |
+| fixed | bm25 | 0.900 | 0.766 | 2.4 ms |
+| fixed | hybrid + rerank | 0.920 | 0.778 | 2119 ms |
+| fixed | hybrid | 0.880 | 0.653 | 32 ms |
+| fixed | dense | 0.640 | 0.482 | 27 ms |
 
-Best Hit@10 overall: recursive + hybrid (0.780). Full grid in `data/results.json`.
+Best Hit@10 overall: fixed + hybrid + rerank (0.960). Full grid in `data/results.json`.
 
 ## Findings
 
-1. **Recursive chunking beat fixed-size chunking for dense retrieval** (MRR 0.575 vs 0.414 at k=5).
-2. **BM25 is ~10x faster than dense retrieval** (3 ms vs 30 ms) with competitive MRR.
-3. **The cross-encoder reranker did not help on this corpus and was ~70x slower** (about 2.3 s per query on CPU).
-4. **Hybrid (RRF) helped most at larger k** (Hit@10 0.780 with recursive chunks).
+1. **BM25 beat dense retrieval by a wide margin** (MRR about 0.76 vs 0.48) and was about 12x faster (2.4 ms vs 28 ms).
+2. **The cross-encoder reranker was the most accurate setup, but barely better than BM25** (MRR 0.78-0.79 vs 0.76) at roughly 900x the latency (about 2.2 s per query on CPU). The gain is within noise at this sample size.
+3. **Hybrid (RRF) sat between dense and BM25**: it improved on dense but did not beat BM25 alone.
+4. **Fixed vs recursive chunking made little difference** (MRR within 0.02).
 
 ## Limitations
 
-- Only 50 questions, so differences under ~0.05 are noise.
-- Questions were LLM-generated from the corpus and are not yet fully hand-verified.
-- Relevance is judged by token overlap with the source passage, which is approximate.
+- Only 50 questions, so differences under about 0.05 are noise.
+- Questions were LLM-generated from the corpus (deduplicated: one question per passage, reference lists and tables of contents excluded) and spot-checked by hand.
+- Questions and relevance labels both rely on lexical overlap with the source passage, which likely favors BM25.
 - One domain (RAG papers), one embedding model (bge-small), CPU timings.
+- An earlier version of this benchmark had duplicated passages. They were removed and every number above was recomputed.
 
 ## Run it
 
@@ -64,4 +65,4 @@ Python, ChromaDB, sentence-transformers (bge-small), rank-bm25, cross-encoder re
 
 ## Roadmap
 
-LLM-as-judge for faithfulness, FastAPI service, Next.js dashboard, Qdrant backend.
+LLM-as-judge for faithfulness, FastAPI service, Next.js dashboard, Qdrant backend, a human-labeled relevance set to remove the lexical bias.
