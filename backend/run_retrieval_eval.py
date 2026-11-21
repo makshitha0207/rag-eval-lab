@@ -1,4 +1,5 @@
 import json
+import sys
 
 import numpy as np
 
@@ -14,10 +15,13 @@ KS = [3, 5, 10]
 
 
 def main():
+    eval_name = sys.argv[1] if len(sys.argv) > 1 else "eval.jsonl"
+    out_name = sys.argv[2] if len(sys.argv) > 2 else "results.json"
+
     docs = load_documents(settings.data_dir / "raw")
-    with open(settings.data_dir / "eval" / "eval.jsonl", encoding="utf-8") as f:
-        dataset = [json.loads(line) for line in f]
-    print(f"{len(docs)} docs, {len(dataset)} questions\n")
+    with open(settings.data_dir / "eval" / eval_name, encoding="utf-8") as f:
+        dataset = [json.loads(line) for line in f if line.strip()]
+    print(f"{len(docs)} docs, {len(dataset)} questions from {eval_name}\n")
 
     results = []
     print(f"{'chunker':<10}{'retriever':<15}{'k':<4}{'Hit@k':<8}{'MRR':<8}{'P@k':<8}{'p50ms':<8}{'p95ms':<8}")
@@ -44,7 +48,7 @@ def main():
                 print(f"{chunker:<10}{mode:<15}{k:<4}{row['hit']:<8.3f}{row['mrr']:<8.3f}"
                       f"{row['precision']:<8.3f}{row['p50_ms']:<8.1f}{row['p95_ms']:<8.1f}")
 
-    out = settings.data_dir / "results.json"
+    out = settings.data_dir / out_name
     out.write_text(json.dumps(results, indent=2), encoding="utf-8")
     print(f"\nSaved to {out}")
 

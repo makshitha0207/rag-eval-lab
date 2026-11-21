@@ -58,6 +58,21 @@ OPENAI_API_KEY=your-key
 LLM_BASE_URL=https://api.groq.com/openai/v1
 LLM_MODEL=openai/gpt-oss-20b
 ```
+## Try it yourself
+
+Ask one question and compare all four retrievers:
+
+```bash
+cd backend
+python ask_question.py "How does ColBERT score query and document matching?"
+```
+
+Add your own test questions and score them:
+
+```bash
+python add_test.py                                              # adds to data/eval/custom.jsonl
+python run_retrieval_eval.py custom.jsonl results_custom.json   # scores them
+```
 
 ## Stack
 
